@@ -2,11 +2,12 @@ import os
 os.environ["USER_AGENT"] = "MyLangChainApp/1.0"
 import bs4
 from langchain_community.document_loaders import WebBaseLoader
-
+# load the API Key from the hidden file
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
 # Only keep post title, headers, and content from the full HTML.
 bs4_strainer = bs4.SoupStrainer(id="song-body")
 loader = WebBaseLoader(
@@ -33,6 +34,7 @@ print(f"Split the lyrics into {len(all_splits)} sub-documents.")
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+
 # Use Local embeddings
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
