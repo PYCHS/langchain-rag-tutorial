@@ -78,7 +78,7 @@ model = ChatAnthropic(
 agent = create_agent(model, tools, system_prompt=prompt)
 
 query = (
-    "Which public figures are mentioned in the lyrics?\n\n"
+    "Which famous people are mentioned in the lyrics?\n\n"
     "Once you find them, group them by the age 0~20, 21~30, 31~40, 41~50, 51~60, 61~70..."
 )
 
