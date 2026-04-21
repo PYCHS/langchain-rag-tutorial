@@ -1,6 +1,6 @@
-# LangChain RAG Tutorial
+# LangChain RAG Tutorial Practice
 
-這是一個用 Python 練習 LangChain RAG（Retrieval-Augmented Generation）的教學型專案。專案目前包含網頁文章、歌詞、CSV、PDF 等不同資料來源的 loader 範例，並示範如何把文件切成 chunk、建立 embedding、存進 Chroma vector store，再讓 LLM agent 透過 retrieval tool 回答問題。
+這是一個用 Python 練習 LangChain 官方文件 RAG（Retrieval-Augmented Generation）tutorial 的練習專案。專案目前包含網頁文章、歌詞、CSV、PDF 等不同資料來源的 loader 範例，並示範如何把文件切成 chunk、建立 embedding、存進 Chroma vector store，再讓 LLM agent 透過 retrieval tool 回答問題。
 
 ## Features
 
