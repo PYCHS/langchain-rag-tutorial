@@ -47,7 +47,7 @@ Vector Store
 Retriever / Tool
      ↓
 LLM Answer with Retrieved Context
-
+```
 
 ## Repository Structure
 
