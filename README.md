@@ -47,3 +47,23 @@ Vector Store
 Retriever / Tool
      ↓
 LLM Answer with Retrieved Context
+
+
+## Repository Structure
+
+```text
+langchain-rag-tutorial/
+│
+├── app.py                  # Main application entry point
+├── example.py              # RAG / LangChain practice example
+├── test_setup.py           # Environment and setup testing
+├── .gitignore              # Files ignored by Git
+│
+├── loader/
+│   ├── bugsDocument.csv    # Sample debugging-related CSV data
+│   ├── loaderTest.py       # Loader testing script
+│   ├── my_file.pdf         # Sample PDF document
+│   ├── pdfLoader.py        # PDF loading practice
+│   └── webLoader.py        # Web page loading practice
+│
+└── README.md
