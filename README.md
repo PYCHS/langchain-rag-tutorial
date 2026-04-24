@@ -22,10 +22,31 @@ Query → LLM → [calls retrieve tool] → Docs → LLM → Answer
 
 Both are applied to two document sources: a blog post about AI agents, and song lyrics.
 
-## Pipeline
+## RAG Overview
+
+RAG has two main phases:
+
+### 1. Indexing (offline, done once)
+
+**Load** → **Split** → **Store**
+
+- **Load**: pull raw documents in using loaders (web pages, PDFs, CSVs). In this project I used `WebBaseLoader` with BeautifulSoup to scrape only the relevant HTML sections.
+- **Split**: break documents into smaller chunks using `RecursiveCharacterTextSplitter`. Chunking matters because embedding a 10,000-word article as one vector loses detail — smaller chunks give the retriever more precise targets.
+- **Store**: embed each chunk into a vector and store it in a vector database (Chroma). Embedding converts text into a numeric representation so we can do similarity search later.
 
 ```
-Raw Document → WebBaseLoader → Text Splitter → HuggingFace Embeddings → Chroma → LLM (Claude)
+Raw Document → WebBaseLoader → RecursiveCharacterTextSplitter → HuggingFace Embeddings → Chroma Vector Store
+```
+
+### 2. Retrieval and Generation (online, per query)
+
+**Retrieve** → **Generate**
+
+- **Retrieve**: when the user asks a question, embed the query using the same embedding model, then run a similarity search against the vector store to find the most relevant chunks.
+- **Generate**: pass the retrieved chunks as context to the LLM (Claude). The model answers based on that evidence rather than relying on what it memorized during training.
+
+```
+User Query → Embed Query → Similarity Search → Retrieved Chunks → LLM (Claude) → Answer
 ```
 
 ## File Structure
