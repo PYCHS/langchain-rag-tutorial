@@ -1,79 +1,45 @@
-# LangChain RAG Tutorial
+# LLM Engineering Journey
 
-A hands-on practice project for learning Retrieval-Augmented Generation (RAG) with LangChain. I built this while preparing for my Intel GPU Software Development Internship.
+A personal learning repo for working through LLM engineering — from RAG and prompting to agents, evaluation, and beyond. Each numbered folder is a self-contained module with its own code and notes.
 
-## What I'm Learning
+This repo was **originally built for my Intel GPU Software Development Internship learning** (the LangChain RAG tutorial in module 01). I'm now expanding it to learn further across the LLM engineering stack — prompt engineering, agents, evaluation, fine-tuning, and whatever else turns out to be load-bearing.
 
-LLMs don't know about private or recently updated information. RAG fixes this by fetching relevant documents at runtime and passing them as context. For a debugging assistant, this is important — bug reports need domain knowledge, and the model should answer from evidence rather than guess.
+## Modules
 
-## Two Approaches
+| # | Module | What it covers |
+|---|--------|----------------|
+| 01 | [langchain-rag-tutorial](01-langchain-rag-tutorial/) | Retrieval-Augmented Generation with LangChain — comparing a chain approach (retrieve-then-generate) with an agent approach (LLM-controlled retrieval), using Chroma + HuggingFace embeddings and Claude as the generator. |
+| 02 | [openai-prompt-engineering](02-openai-prompt-engineering/) | Prompt engineering patterns with the OpenAI API — structuring prompts, controlling output, and iterating on prompt design. *(in progress)* |
 
-I implemented two architectures and compared them:
+More modules will be added as the journey continues.
 
-**Chain** — retrieves context upfront and injects it into the system prompt. The LLM just answers.
-```
-Query → Retriever → System Prompt with Context → LLM → Answer
-```
-
-**Agent** — gives the LLM a retrieval tool it can call on its own. It decides when and what to retrieve, which allows multi-step reasoning.
-```
-Query → LLM → [calls retrieve tool] → Docs → LLM → Answer
-```
-
-Both are applied to two document sources: a blog post about AI agents, and song lyrics.
-
-## RAG Overview
-
-RAG has two main phases:
-
-### 1. Indexing (offline, done once)
-
-**Load** → **Split** → **Store**
-
-- **Load**: pull raw documents in using loaders (web pages, PDFs, CSVs). In this project I used `WebBaseLoader` with BeautifulSoup to scrape only the relevant HTML sections.
-- **Split**: break documents into smaller chunks using `RecursiveCharacterTextSplitter`. Chunking matters because embedding a 10,000-word article as one vector loses detail — smaller chunks give the retriever more precise targets.
-- **Store**: embed each chunk into a vector and store it in a vector database (Chroma). Embedding converts text into a numeric representation so we can do similarity search later.
+## Repo Layout
 
 ```
-Raw Document → WebBaseLoader → RecursiveCharacterTextSplitter → HuggingFace Embeddings → Chroma Vector Store
-```
-
-### 2. Retrieval and Generation (online, per query)
-
-**Retrieve** → **Generate**
-
-- **Retrieve**: when the user asks a question, embed the query using the same embedding model, then run a similarity search against the vector store to find the most relevant chunks.
-- **Generate**: pass the retrieved chunks as context to the LLM (Claude). The model answers based on that evidence rather than relying on what it memorized during training.
-
-```
-User Query → Embed Query → Similarity Search → Retrieved Chunks → LLM (Claude) → Answer
-```
-
-## File Structure
-
-```
-├── exampleChain.py      # chain approach on blog post
-├── exampleAgent.py      # agent approach on blog post
-├── chain_lyrics.py      # chain approach on song lyrics
-├── agentic_lyrics.py    # agent approach on song lyrics
-├── loadKey.py           # loads API keys from .env
-├── test_setup.py        # quick check that LLM connection works
-└── loader/              # experiments with PDF, CSV, and web loaders
+llm-engineering-journey/
+├── 01-langchain-rag-tutorial/      # RAG: chain vs. agent, Chroma, embeddings
+├── 02-openai-prompt-engineering/   # Prompt engineering with OpenAI
+└── README.md
 ```
 
 ## Setup
 
+Each module has its own dependencies, but they share a single `.venv` and `.env` at the repo root.
+
 ```bash
-pip install langchain langchain-community langchain-anthropic langchain-huggingface langchain-chroma langchain-text-splitters python-dotenv beautifulsoup4 chromadb sentence-transformers
+python -m venv .venv
+source .venv/bin/activate
 ```
 
-Create a `.env` file:
+Create a `.env` file at the repo root with whichever keys the module you're running needs:
+
 ```
-ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_API_KEY=...
+OPENAI_API_KEY=...
 ```
 
-Then run any example:
-```bash
-python exampleAgent.py
-python agentic_lyrics.py
-```
+Then `cd` into a module and follow its README.
+
+## Why this repo exists
+
+LLM engineering is a moving target — the useful skill is not memorizing one framework but understanding how the pieces (retrieval, prompting, tool use, evaluation, agents) fit together. This repo is where I work through each piece with small, runnable examples and keep notes on what actually mattered versus what was just framework noise.
