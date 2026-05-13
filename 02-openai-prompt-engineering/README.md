@@ -36,7 +36,12 @@ Inside the developer message, the guide recommends this rough layout:
 Use **Markdown headings** and/or **XML tags** to separate sections — models follow structured prompts more reliably than wall-of-text prompts.
 
 ### 4. Few-shot learning
-You don't always need fine-tuning. Showing 2–3 diverse input/output examples in the prompt is often enough for the model to pick up the pattern. Diversity matters more than quantity — examples should cover the edge cases you care about.
+You don't always need fine-tuning. Showing 2–3 diverse input/output examples in the prompt is often enough for the model to pick up the pattern. A few things worth internalizing here (exercised in [step4.py](step4.py)):
+
+- **Models follow examples more reliably than rules.** Rules are abstract; examples are unambiguous. When a rule isn't sticking ("ask ONE clarifying question, not a bulleted list"), an example demonstrating the desired behavior usually fixes it where more rule text doesn't.
+- **Wrap examples in XML tags** (e.g. `<example>...<user_query>...</user_query><assistant_response>...</assistant_response></example>`). Tags act as scope markers — they tell the model *"this is illustrative data, not the live conversation"*. Without them, `My kernel is broken` inside the prompt could be read as the current user's input.
+- **Diversity over quantity.** If all three examples are vague bug reports, the model concludes its job is to ask clarifying questions — and then it asks one even when the user types "what is SYCL?". Each example should teach a *different* behavior (one clarifying question, one refusal, one concept answer, one real debug answer).
+- **Demonstrate behavior, not facts.** A good example for "what is SYCL?" doesn't teach the model what SYCL *is* — it teaches the model *how to answer concept questions*: concise, technical, no clingy follow-up. The model generalizes from the style.
 
 ### 5. Retrieval-Augmented Generation (RAG)
 When the answer depends on private or recent data, attach the relevant context to the prompt (via vector search, file search tools, etc.) instead of relying on the model's training data. Module 01 covers this in depth — here it's just acknowledged as one of the levers.
@@ -59,6 +64,7 @@ When the answer depends on private or recent data, attach the relevant context t
 | [step1_basic.py](step1_basic.py) | Interactive REPL with only a `user` message — establishes the baseline before adding structure. |
 | [step2_developer_message.py](step2_developer_message.py) | Adds a `developer` message defining identity, scope, and behavior rules. Demonstrates the role hierarchy in action. |
 | [step3_structured.py](step3_structured.py) | Iterates on the developer prompt with explicit sections (identity / topics / behavior rules) and bait-test ideas in comments for chain-of-command robustness. |
+| [step4.py](step4.py) | Adds a `# Examples` section with XML-tagged few-shot input/output pairs, each targeting a different behavior (clarifying question, refusing creative writing, concept answer, real debug answer). |
 
 The Intel-GPU-debug-assistant scenario was chosen on purpose: it forces the prompt to **define scope** (refuse off-topic), **set tone** (technical audience), and **constrain behavior** (ask one focused question instead of guessing) — all things you can't get from prompting alone without thinking about structure.
 
@@ -83,5 +89,4 @@ python step2_developer_message.py
 ## What I'd revisit next
 
 - **Evals before prompts.** The guide is explicit that prompts without evals are guesswork. A small eval harness (even 10 hand-written test cases) belongs before any further prompt tweaking.
-- **Few-shot examples** inside the developer prompt — none of the current scripts demonstrate this yet.
 - **Prompt caching** — measure the latency/cost difference of putting the long developer prompt first vs. last.
