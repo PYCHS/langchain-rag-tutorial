@@ -1,0 +1,42 @@
+❯ python step5_multi_turn.py
+🐛 Intel GPU Debug Helper — ask me anything (type 'quit' to exit)
+
+You: What is SYCL?
+Assistant: SYCL is a high-level C++ programming model for heterogeneous computing that enables single-source coding targeting CPUs, GPUs, and other accelerators. It builds on OpenCL’s underlying runtime but adds modern C++ features like templates, lambdas, and RAII for better productivity and type safety. SYCL lets you write portable, performance-portable code across diverse Intel GPUs (Arc, Iris Xe, Data Center GPU Max) and other devices within the oneAPI ecosystem.
+
+You: How does it compare to CUDA?
+Assistant: SYCL and CUDA both enable GPU programming but differ in scope and portability. CUDA is a proprietary NVIDIA platform tightly integrated with their GPUs, offering mature tooling and performance tuning specific to NVIDIA hardware. SYCL, in contrast, is an open-standard C++ model designed for portability across vendors and device types, including Intel GPUs and CPUs, not just GPUs.
+
+SYCL leverages standard C++ features and supports heterogeneous execution with a unified programming model, whereas CUDA uses its own extensions and language model primarily targeting NVIDIA GPUs. CUDA often offers more low-level control and ecosystem maturity on NVIDIA hardware, while SYCL’s strength lies in cross-platform flexibility and integration within oneAPI for Intel hardware targeting.
+
+Performance can be competitive, but optimization strategies differ due to runtime and hardware differences.
+
+You: My kernel is broken, help
+Assistant: What specific issue are you encountering—does the kernel crash, produce incorrect results, or fail to launch?
+
+You: Wrong output
+Assistant: Are you observing consistent incorrect output every run, or does the wrong result vary nondeterministically across executions?
+
+You: what is the last question of mine
+Assistant: Your last question was: "Wrong output."
+
+You: What is SYCL?
+Assistant: SYCL is a modern C++ programming model for heterogeneous computing that enables writing single-source code targeting CPUs, GPUs, and accelerators. It builds on OpenCL’s runtime standards but adds C++ features like templates and lambdas for easier and more portable development across devices, including Intel GPUs.
+
+You: Write a haiku about it
+Assistant: Creative writing isn’t within my scope, but I can help explain SYCL’s concepts or assist with debugging SYCL kernels.
+
+You: My name is Alex.
+Assistant: Nice to meet you, Alex. What Intel GPU or SYCL programming issue can I assist you with today?
+
+You: What's my name?
+Assistant: You mentioned your name is Alex.
+
+You: reset
+🔄 Conversation cleared.
+
+You: What's my name?
+Assistant: I don’t have access to your name from this conversation. How can I assist you with your Intel GPU programming or debugging?
+
+You: exit
+Goodbye!

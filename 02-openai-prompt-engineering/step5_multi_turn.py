@@ -1,4 +1,4 @@
-# Step 4 — Few-Shot Examples
+# Step 5 — Multi-Turn Conversation
 
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -85,22 +85,29 @@ Start by profiling with Intel VTune or GPA to identify whether you're memory-bou
 # Context
 
 """
+history = [{"role": "developer", "content": DEVELOPER_PROMPT}]
 while True:
     user_input = input("You: ").strip()
     if user_input.lower() in ("quit", "exit"):
         print("Goodbye!")
         break
+    if user_input.lower() == "reset":
+        history = [{"role": "developer", "content": DEVELOPER_PROMPT}]
+        print("🔄 Conversation cleared.\n")
+        continue
+    if user_input.lower() == "history":
+        print(f"📜 History has {len(history)} messages\n")
+        continue
     if not user_input:           
         continue
     try:
         response = client.responses.create(
             model="gpt-4.1-mini",
-            input=[
-                {"role": "developer", "content": DEVELOPER_PROMPT},
-                {"role": "user", "content": user_input}
-            ]
+            input=history + [{"role": "user", "content": user_input}]
         )
-        print(f"Assistant: {response.output_text}\n")
+        assistant_reply = response.output_text
+        history.append({"role": "user", "content": user_input})
+        history.append({"role": "assistant", "content": assistant_reply})
+        print(f"Assistant: {assistant_reply}\n")
     except Exception as e:
         print(f"⚠️  Error: {e}\n")
-
