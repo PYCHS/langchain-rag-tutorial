@@ -1,4 +1,4 @@
-# Step 5 — Multi-Turn Conversation
+# Step 6 — Adding Context (Mini-RAG)
 
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -6,8 +6,14 @@ from dotenv import load_dotenv
 load_dotenv()                     # reads .env into environment variables
 client = OpenAI()                 # automatically picks up OPENAI_API_KEY env var
 
+def load_knowledge(path="knowledge.md"):
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+KNOWLEDGE = load_knowledge()
+
 print("🐛 Intel GPU Debug Helper — ask me anything (type 'quit' to exit)\n")
-DEVELOPER_PROMPT = """
+DEVELOPER_PROMPT_TEMPLATE = """
 # Identity
 
 - You are an Intel GPU debugging assistant.
@@ -16,6 +22,14 @@ DEVELOPER_PROMPT = """
 - Your users are working software engineers — assume technical fluency.
 
 # Instructions
+
+## Using provided context
+- Answer using the information in the # Context section when it is relevant.
+- If the Context contains the answer, base your response on it and 
+  mention which document it came from.
+- If the Context does NOT contain the answer, say so explicitly, then 
+  you may answer from general knowledge — but clearly label it as such.
+- Never present information as Intel-specific fact unless it appears in the Context.
 
 ## Scope
 Topics you cover:
@@ -84,7 +98,18 @@ Start by profiling with Intel VTune or GPA to identify whether you're memory-bou
 
 # Context
 
+The following internal documentation is provided. Use it to answer 
+questions when relevant.
+
+<doc title="Intel Arc B-Series Debugging Notes" source="internal">
+__KNOWLEDGE__
+</doc>
+
 """
+
+DEVELOPER_PROMPT = DEVELOPER_PROMPT_TEMPLATE.replace("__KNOWLEDGE__", KNOWLEDGE)
+# print(DEVELOPER_PROMPT) # success replace hahahahahaahahhaha!!!
+# use replace() instead of f-string to avoid the {{}} problem
 history = [{"role": "developer", "content": DEVELOPER_PROMPT}]
 while True:
     user_input = input("You: ").strip()
@@ -110,4 +135,13 @@ while True:
         history.append({"role": "assistant", "content": assistant_reply})
         print(f"Assistant: {assistant_reply}\n")
     except Exception as e:
-        print(f"Error: {e}\n")
+        print(f"Error: {e}\n")  
+    
+    
+# test prompts: 
+# What does error code XE-4471 mean? (Answer from context (the core RAG test))
+# What's the work-group size limit on Arc B580? (Citation)
+# What's the work-group size limit on Arc B999? (The "I don't know" test (the graduation check))
+# What is SYCL? (if General knowledge still works)
+# I'm getting XE-4471 on my B580. My local range is set to 1024. What do I do? (Context + reasoning combined)
+# Why is my profiling data empty on Arc B-series? (Bonus: the trickiest one)

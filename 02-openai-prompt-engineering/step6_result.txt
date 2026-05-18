@@ -1,0 +1,23 @@
+❯ python step6_mini_RAG.py
+🐛 Intel GPU Debug Helper — ask me anything (type 'quit' to exit)
+
+You: What does error code XE-4471 mean?
+Assistant: Error code XE-4471 means your kernel's work-group size exceeds the hardware limit on Intel Arc B580 GPUs. Specifically, B580 supports a maximum local work-group size of 512, unlike the 1024 allowed on A-series GPUs. You need to reduce your local range to 512 or below. This info comes from the "Intel Arc B-Series Debugging Notes" document.
+
+You: What's the work-group size limit on Arc B580?
+Assistant: The work-group size limit on Intel Arc B580 GPUs is 512. Your kernel's local work-group size must not exceed this value to avoid errors like XE-4471. This is stated in the "Intel Arc B-Series Debugging Notes" document.
+
+You: What's the work-group size limit on Arc B999?
+Assistant: The provided context does not specify the work-group size limit for the Intel Arc B999 GPU. From general knowledge, Intel GPUs often follow similar limits as their series peers, but the exact limit can vary by model and driver. To be certain, consult the official Intel GPU documentation or try querying the device's maximum work-group size through API calls like clGetDeviceInfo for OpenCL or sycl::device queries.
+
+You: What is SYCL?
+Assistant: SYCL is a high-level C++ programming model for heterogeneous computing. It lets you write single-source C++ code that can run on CPUs, GPUs, and accelerators. SYCL builds on OpenCL semantics but provides modern C++ features like lambdas, templates, and RAII, making GPU programming more expressive and easier to integrate with standard C++ code. This summary aligns with the general knowledge as the context doesn't specifically define SYCL.
+
+You: I'm getting XE-4471 on my B580. My local range is set to 1024. What do I do?
+Assistant: Since XE-4471 means your work-group size exceeds the B580's limit of 512, you need to reduce your local range from 1024 to 512 or less. This change works because the B580 hardware doesn't support work-groups larger than 512 threads, so lowering the local range fits within its capabilities and avoids the error.
+
+You: Why is my profiling data empty on Arc B-series?
+Assistant: On Intel Arc B-series GPUs, the default GPU sampling interval for profiling is 1ms. If your kernel runs shorter than 1ms, no samples are collected, resulting in empty profiling data. To fix this, set the VTune flag --gpu-sampling-interval=0.1 for finer sampling frequency, which captures short kernel executions. This is from the "Intel Arc B-Series Debugging Notes" document.
+
+You: exit
+Goodbye!
