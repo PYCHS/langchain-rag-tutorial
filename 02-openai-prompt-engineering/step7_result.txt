@@ -1,0 +1,587 @@
+
+============================================================
+  Experiment 1: Simple question
+============================================================
+
+--- gpt-4.1-mini  (2.3s) ---
+GPU occupancy is the ratio of active warps to the maximum possible warps on a streaming multiprocessor, indicating how effectively parallel resources are being utilized.
+
+--- gpt-4.1  (4.3s) ---
+GPU occupancy is the ratio of active warps running on a multiprocessor to the maximum number of possible active warps, indicating how efficiently the GPU's computational resources are being utilized.
+
+--- o4-mini  (4.4s) ---
+GPU occupancy is the ratio of active warps (or threads) on a GPU’s streaming multiprocessors to the maximum warps (or threads) they can support, indicating how fully the GPU’s parallel execution resources are utilized.
+
+============================================================
+  Experiment 2: Hard reasoning problem
+============================================================
+
+--- gpt-4.1-mini  (28.0s) ---
+Let's analyze the problem step-by-step.
+
+---
+
+### Given:
+
+- **Matrix size:** 4096 × 4096
+- **Work-group size:** 256 (work-items per group)
+- **FLOPs per work-item:** 12
+- **Kernel runtime:** 0.8 ms (0.8 × 10^-3 seconds)
+- **Target hardware:** Intel Arc B580
+  - Peak FP32 performance: ~13 TFLOPS (13 × 10^12 FLOPS)
+  - Peak memory bandwidth: ~456 GB/s
+
+---
+
+### Step 1: Calculate total number of FLOPs executed
+
+Total matrix elements = \( 4096 \times 4096 = 16,777,216 \) elements.
+
+Each element requires 12 FLOPs, so total FLOPs =
+
+\[
+12 \times 16,777,216 = 201,326,592 \quad \text{FLOPs}
+\]
+
+---
+
+### Step 2: Calculate achieved GFLOPS
+
+Kernel runtime = 0.8 ms = 0.0008 seconds.
+
+Achieved FLOPS = total FLOPs / runtime =
+
+\[
+\frac{201,326,592 \text{ FLOPs}}{0.0008 \text{ s}} = 251,658,240,000 \text{ FLOPs/s} = 251.66 \text{ GFLOPS}
+\]
+
+---
+
+### Step 3: Compare achieved GFLOPS to peak
+
+- Achieved: ~252 GFLOPS
+- Peak: 13 TFLOPS = 13,000 GFLOPS
+
+The kernel achieves roughly \( \frac{252}{13,000} \approx 1.94\% \) of the peak floating-point performance.
+
+---
+
+### Step 4: Estimated memory traffic and bandwidth requirement
+
+This part is more involved.
+
+- To judge if the kernel is memory-bound, estimate how much data (in bytes) the kernel reads/writes from/to memory.
+- Then compute memory bandwidth utilization and compare with peak.
+
+**Assumption:** The kernel is processing 4096×4096 matrix elements, so probably reading input matrix and writing result matrix.
+
+Let's assume:
+
+- Input matrix read: 4 bytes per element (assuming FP32 data)
+- Output matrix write: 4 bytes per element
+- Possibly, no or negligible other memory traffic.
+
+---
+
+**Total memory bytes transferred:**
+
+\[
+(4 \text{ bytes read} + 4 \text{ bytes written}) \times (4096 \times 4096) = 8 \times 16,777,216 = 134,217,728 \text{ bytes} = 128 \text{ MB}
+\]
+
+---
+
+**Memory bandwidth used:**
+
+\[
+\frac{128 \text{ MB}}{0.0008 \text{ s}} = 160 \text{ GB/s}
+\]
+
+---
+
+### Step 5: Interpretation
+
+| Metric                   | Value         | Comment                   |
+|-------------------------|---------------|--------------------------|
+| Achieved GFLOPS         | ~252 GFLOPS   | ~2% of peak compute      |
+| Needed memory BW        | ~160 GB/s     | ~35% of peak 456 GB/s    |
+
+The kernel uses a **significant fraction of memory bandwidth**, but only a small fraction of compute.
+
+---
+
+### Step 6: Conclusion
+
+- The kernel achieves only ~2% of peak compute performance but uses about 35%+ of the memory bandwidth.
+- Since the compute utilization is low and memory BW utilization is moderate, the kernel seems **memory-bound**.
+- To improve performance, we should optimize memory accesses (e.g., increase reuse, coalescence, reduce global memory loads), or reduce memory footprint (e.g., through shared/local memory in SYCL).
+
+---
+
+# **Summary:**
+
+| Parameter           | Value                   |
+|---------------------|-------------------------|
+| Total FLOPs         | 201 million             |
+| Runtime             | 0.8 ms                  |
+| Achieved GFLOPS     | 252 GFLOPS              |
+| % Peak compute      | ~2% of 13,000 GFLOPS    |
+| Memory traffic      | ~128 MB                 |
+| Effective bandwidth | ~160 GB/s               |
+| % Peak bandwidth    | ~35% of 456 GB/s        |
+| **Bottleneck type** | **Memory-bound**        |
+
+---
+
+If you want me to estimate more precisely with different memory assumptions or more detailed kernel analysis, I can assist further.
+
+--- gpt-4.1  (30.8s) ---
+Let's break down your problem step by step:
+
+### 1. **Total Number of FLOPs**
+
+- **Matrix size:** \( 4096 \times 4096 \)
+- **Total elements:** \( 4096 \times 4096 = 16,777,216 \)
+- **FLOPs per work-item (per element):** \( 12 \)
+- **Total FLOPs:**  
+  \[
+  \text{Total FLOPs} = 16,777,216 \times 12 = 201,326,592
+  \]
+
+---
+
+### 2. **Execution Time**
+
+- **Given runtime:** \( 0.8 \) ms = \( 0.0008 \) seconds
+
+---
+
+### 3. **Achieved GFLOPS**
+
+\[
+\text{GFLOPS} = \frac{\text{Total FLOPs}}{\text{Time in seconds} \times 10^9}
+\]
+
+Plug in the numbers:
+
+\[
+\text{GFLOPS} = \frac{201,326,592}{0.0008 \times 10^9}
+\]
+
+\[
+\text{GFLOPS} = \frac{201,326,592}{800,000}
+\]
+
+\[
+\text{GFLOPS} = 251.66
+\]
+
+**Rounded:**
+- **Achieved GFLOPS ≈ 252**
+
+---
+
+### 4. **Compute-bound or Memory-bound?**
+
+Let's check both:
+
+#### **A. Compute Bound?**
+- **Intel Arc B580 peak FP32:** ~13,000 GFLOPS (13 TFLOPS)
+- **Achieved:** 252 GFLOPS (about 2% of peak)
+- **Not hitting compute peak** → Likely not compute-bound
+
+#### **B. Memory Bound?**
+
+Let's estimate memory traffic.
+
+- **Assume each element is processed once**  
+  (Common for simple kernels)
+
+- **For single matrix input/output:** Each element (FP32) is read and/or written.
+  - One read + one write per element: \( 2 \times 4 = 8 \) bytes per element
+  - **Total bytes:** \( 8 \times 16,777,216 = 134,217,728 \) bytes ≈ 128 MiB
+
+- **Total bandwidth used:**
+  - \[
+    \frac{134,217,728 \ \text{bytes}}{0.0008\ \text{s}} = 167,772,160,000 \ \text{bytes/s}
+    \]
+  - \( \approx 156.25 \ \text{GB/s} \)
+
+- **Device peak:** 456 GB/s
+
+- **Utilization:** ~34% of bandwidth peak (if only input and output passed)
+- This is a fair fraction but less than half the peak.
+
+---
+
+### 5. **Summary**
+
+- **Achieved performance:** ≈ 252 GFLOPS
+- **Compared to compute peak (13,000 GFLOPS):** Much lower → not compute-bound
+- **Compared to memory peak (456 GB/s):** Using about 156 GB/s (~34%) → closer to memory bound, but not saturating it
+
+### 6. **Conclusion**
+
+**The kernel is—by the numbers—much closer to being _memory bound_ than _compute bound_.**  
+- 12 FLOPs per 8 bytes (1 element) = 1.5 FLOPs/byte  
+- Modern GPUs tend to need hundreds of FLOPs per byte to be compute-bound.
+
+**It does not saturate memory bandwidth, possibly due to:**
+- Suboptimal memory access patterns (coalescing, stride, etc.)
+- Overheads (kernel launch, barriers, etc.)
+- Cache effects
+
+### **Rule-of-thumb:**  
+For a typical GPU kernel, unless you have **many more than 10 FLOPs/byte**, you'll usually be memory bound. Here you have only 1.5 FLOPs/byte.
+
+---
+
+## **Summary Table**
+
+|                   | Value         |
+|-------------------|--------------|
+| **Achieved GFLOPS**     | ~252       |
+| **% of compute peak**   | ~2%        |
+| **% of memory peak**    | ~34%       |
+| **Likely bound by**     | **Memory** |
+
+**If you want to improve performance, focus on improving memory access efficiency, not raw computation speed.**
+
+--- o4-mini  (12.2s) ---
+Total work‐items: 4096×4096 = 16 777 216  
+FLOPs per item: 12  
+Total FLOPs = 16 777 216 × 12 = 201 326 592 ≃ 2.0×10^8  
+Elapsed time = 0.8 ms = 8×10^–4 s  
+Achieved rate ≃ 2.013×10^8 FLOPs / 8×10^–4 s ≃ 2.52×10^11 FLOPs/s ≃ 252 GFLOPS  
+
+Compare to device peak  
+- FP32 peak ≃ 13 000 GFLOPS  
+- Memory BW peak ≃ 456 GB/s  
+
+Arithmetic intensity (AI): assume each work‐item does one read + one write (8 bytes) → AI ≃ 12 FLOP / 8 B = 1.5 FLOP/B  
+Roofline memory‐bound ceiling = 456 GB/s × 1.5 FLOP/B ≃ 684 GFLOPS  
+
+Since AI ≪ (13 000 GFLOPS / 456 GB/s ≃ 28.5 FLOP/B), we are squarely in the memory‐bound regime.  
+Indeed, to sustain 252 GFLOPS at AI=1.5 you need ~168 GB/s of bandwidth (252/1.5), well under the 456 GB/s peak—yet you’re nowhere near the 13 TFLOPS compute ceiling.  
+
+Conclusion:  
+Achieved ≃ 0.25 TFLOPS; performance is limited by memory bandwidth (low arithmetic intensity), not by compute.
+
+============================================================
+  Experiment 3A: Heavy instructions
+============================================================
+
+--- gpt-4.1-mini  (5.4s) ---
+1. Identify the symptom:  
+The SYCL kernel produces correct results when run on the CPU but gives incorrect results when run on the Intel Arc GPU.
+
+2. List three possible causes:  
+a) Difference in floating-point precision or behavior between CPU and GPU.  
+b) Usage of unsupported or partially supported SYCL features on the Arc GPU.  
+c) Memory access or synchronization issues specific to the GPU execution environment.
+
+3. For each cause, explain how to confirm it:  
+a) Floating-point precision differences:  
+- Check if your kernel relies on floating-point operations sensitive to precision or associativity.  
+- Run test cases with known numerical stability and compare intermediate values on CPU vs. GPU.  
+- Try using double precision (if supported) or different rounding modes to see if results improve.
+
+b) Unsupported SYCL features:  
+- Review the SYCL specification and Intel Arc GPU support documentation to confirm feature compatibility.  
+- Reduce kernel complexity by removing or replacing suspect SYCL features (e.g., certain barriers, atomics).  
+- Run the kernel with SYCL validation or debug layers enabled to catch unsupported usage.
+
+c) Memory access or synchronization issues:  
+- Check the kernel for correct use of local/shared memory and ensure proper barriers are in place.  
+- Use GPU debugging tools or profiling to detect memory access violations or race conditions.  
+- Introduce synchronization points or atomic operations to verify if race conditions cause errors.
+
+4. Rank by likelihood:  
+1) Memory access or synchronization issues  
+2) Unsupported SYCL features on the Arc GPU  
+3) Floating-point precision differences
+
+5. Single most likely fix:  
+Review and correct the kernel’s memory access patterns and synchronization to ensure all accesses are well-defined and properly ordered for GPU execution. Adding necessary barriers and verifying that memory accesses adhere to GPU requirements will most likely fix the incorrect results on the Arc GPU.
+
+--- gpt-4.1  (8.4s) ---
+**Step 1: Identify the symptom.**  
+Your SYCL kernel produces correct results when run on a CPU device but gives incorrect results when run on an Intel Arc GPU.
+
+---
+
+**Step 2: List three possible causes.**  
+1. Undefined behavior in the kernel code that only manifests on GPU.  
+2. Data race or lack of proper synchronization in the kernel.  
+3. Use of unsupported or GPU-specific features or limitations (e.g., differences between host/CPU and device/GPU memory or math function implementations).
+
+---
+
+**Step 3: For each cause, explain how to confirm it.**  
+1. **Undefined behavior:**  
+   - Review your kernel code for uninitialized variables, out-of-bounds accesses, or pointer errors.
+   - Use a static analyzer or enable compiler warnings.
+   - Run the kernel with various compiler optimization levels on CPU and see if results ever differ.
+   - Add validation (assertions or printouts) inside the kernel on both devices.
+
+2. **Data race/lack of synchronization:**  
+   - Use SYCL tools (e.g., Intel Inspector, ThreadSanitizer if available).
+   - Manually inspect the code for shared data being concurrently written to by multiple work-items without barriers or atomics.
+   - Try refactoring the code to minimize shared data or add appropriate synchronization/barrier primitives and see if results change.
+
+3. **Unsupported/GPU-specific features or limitations:**  
+   - Check if your kernel uses language features or platform features that may differ between CPU and GPU (e.g., certain math functions, double precision, sub-group functions).
+   - Look up Intel Arc GPU documentation for any known limitations or required flags.
+   - Replace questionable code with simpler or more standard alternatives and test if output changes.
+
+---
+
+**Step 4: Rank them by likelihood.**  
+1. **Data race/lack of synchronization** (most likely; GPUs run kernels in parallel by default, which exposes synchronization bugs that CPUs—running single-threaded or with different schedules—can hide).  
+2. **Undefined behavior** (also common; often not device-specific, but different hardware triggers UB differently).
+3. **Unsupported/GPU-specific features or limitations** (less common, but possible, especially with new or complex devices).
+
+---
+
+**Step 5: Give the single most likely fix.**  
+**Add proper synchronization and/or use SYCL atomic operations or barriers for data that is shared between work-items.**  
+Carefully review and revise your kernel so that any shared memory access is protected and ensure all data dependencies are properly synchronized. This is the most likely way to resolve result differences between CPU and Arc GPU.
+
+--- o4-mini  (14.9s) ---
+1. Symptom  
+   Your SYCL kernel produces correct outputs when run on the host/CPU device but yields wrong or corrupted results when you target the Intel Arc GPU.
+
+2. Three possible causes  
+   2.1 Undefined behavior in the kernel (e.g. out-of-bounds accesses or use of uninitialized local or private variables).  
+   2.2 Data races or missing synchronization (e.g. concurrent writes to global memory without atomics or barriers).  
+   2.3 Differences in floating-point handling or compiler optimizations on GPU (e.g. reduced precision, fused-multiply-add, fast-math flags).
+
+3. How to confirm each  
+   3.1 Undefined behavior  
+       • Compile and run with an address sanitizer or SYCL debug mode (set SYCL_DEVICE_FILTER=CPU to isolate host then GPU).  
+       • Add bounds checks or explicit initializations in your kernel; if the GPU result changes or the sanitizer flags an error, you have UB.  
+   3.2 Data races/synchronization  
+       • Simplify to a single work-item or add proper atomics/barriers; if that corrects the GPU output, you had a race.  
+       • Insert barriers (e.g. group_barrier) or switch to atomic operations on the suspect buffer, then compare.  
+   3.3 FP-precision/optimization differences  
+       • Recompile disabling fast-math or enabling FP64 everywhere (e.g. –cl-denorms-are-zero-off, disable fma).  
+       • Compare element-wise errors against a high-precision CPU reference; if errors shrink on GPU, you’re hitting precision/optimization divergence.
+
+4. Likelihood ranking  
+   1 (most likely) – undefined behavior (out-of-bounds or uninitialized memory)  
+   2 – data races or missing synchronization  
+   3 (least likely) – floating-point/optimization differences
+
+5. Single most likely fix  
+   Audit and correct all memory accesses and ensure every kernel variable (private, local, global) is properly sized and explicitly initialized before use. This eliminates the undefined-behavior that typically manifests only on the GPU.
+
+============================================================
+  Experiment 3B: Light instructions
+============================================================
+
+--- gpt-4.1-mini  (8.2s) ---
+When a SYCL kernel runs correctly on CPU but produces wrong results on an Intel Arc GPU, this often points to issues related to GPU-specific constraints or behaviors. The most common causes and recommended checks/fixes are:
+
+### 1. Check for Uninitialized or Undefined Data
+- CPUs often tolerate uninitialized variables better than GPUs.
+- **Fix:** Ensure all variables in your kernel are explicitly initialized before use.
+
+### 2. Memory Access Patterns and Address Spaces
+- GPU memory is more strict about memory access and alignment.
+- **Fix:** 
+  - Verify that all memory buffers and accessors are correctly created and used.
+  - Ensure you use the correct access modes (read, write, read_write).
+  - Make sure you do not have out-of-bounds accesses.
+
+### 3. Synchronization and Race Conditions
+- CPU executions are sometimes serialized or tolerant of subtle race conditions.
+- GPU kernels run massively parallel and expose data races.
+- **Fix:** Use `nd_item.barrier()` or `group_barrier()` appropriately to synchronize work-items inside your kernel.
+
+### 4. Floating Point and Math Differences
+- GPUs may have different floating-point precision or math function behaviors.
+- **Fix:**
+  - Avoid relying on undefined floating point behavior.
+  - Use explicit math function variants (e.g., `sycl::fast_math` if speed is critical but precision is acceptable).
+  - Consider disabling fast math modes if precision is critical.
+
+### 5. Check Kernel Launch Configuration
+- Ensure your workgroup sizes and ND-range are compatible with the Arch GPU limits.
+- **Fix:** Query device info via SYCL runtime and tune your local/global ranges accordingly.
+
+### 6. Dependency on CPU-only features or Host-side Data
+- If the kernel logic depends on data or functions available only on the host or the CPU, results will be incorrect on GPU.
+- **Fix:** Make sure all functions and data used in the kernel are device-compatible.
+
+---
+
+### Debugging Steps:
+
+1. **Enable SYCL/Level Zero backend verbose logs** to catch runtime errors.
+2. Run with sanitizers if available (e.g., Intel oneAPI tools).
+3. Try simple minimal kernels to isolate problematic code.
+4. Compare outputs step-by-step for kernel sub-regions.
+5. Use explicit `buffer.wait()` or `queue.wait()` for synchronization on the host.
+
+---
+
+### Summary
+
+The most likely fix:  
+**Add explicit synchronization barriers (`nd_item.barrier()`) and ensure all data is properly initialized and accessed within bounds.**  
+Secondary: Check memory accessor usage and kernel launch parameters.
+
+If you can share a minimal reproducible example, I can help diagnose more precisely.
+
+--- gpt-4.1  (15.6s) ---
+Given your SYCL kernel produces correct results on CPU, but incorrect results on an Intel Arc GPU, here’s a step-by-step debugging approach and the **most likely causes and fixes**:
+
+---
+
+### Common Causes
+
+1. **Data Race / Undefined Behavior**  
+   - CPU and GPU scheduling and memory models are different. Code that *accidentally* works on CPU may trigger race conditions or UB on GPU.
+   - SYCL doesn't catch missed `accessor`/buffer constraints or improper synchronization.
+
+2. **Uninitialized or Host-Only Variables**  
+   - Variables may be properly initialized on CPU, but not on GPU if not copied or managed correctly.
+
+3. **Pointer/Address Space Error**  
+   - Using raw pointers or not accessing data through SYCL `accessor`s may lead to errors on GPU but "work" on CPU.
+
+4. **Non-Portable Code or Unsupported Features**  
+   - Relying on host-only features or undefined ODR-use may work on the CPU reference device, not Arc GPU.
+
+5. **Alignment and Vectorization Issues**  
+   - Some data types or layouts may not be portable––Arc devices could require stricter alignment.
+
+---
+
+### Diagnostic Steps
+
+#### 1. Buffer/Accessor Correctness
+
+**Check:** Are you accessing SYCL buffers exclusively via accessors?  
+**Fix:** Rewrite all device code to use accessors, not raw pointers or host pointers.
+
+#### 2. Synchronization
+
+**Check:** Are you performing atomic updates or reductions correctly, or updating shared data without guards?  
+**Fix:** Use SYCL atomics, or split work so each work-item has its own output location.
+
+#### 3. Memory Initialization
+
+**Check:** Are all buffers/variables/devices properly initialized?  
+**Fix:** Zero-initialize all data objects before dispatch.
+
+#### 4. Compiler Diagnostics
+
+- Run with `-Wall -sycl-std=2020` and check for warnings.
+- Add `assert()` statements in your kernel if possible.
+- Enable SYCL runtime diagnostics:  
+  `SYCL_PI_LEVEL_ZERO_DEBUG=1` or `SYCL_PI_TRACE=info` (for Intel’s DPC++).
+
+#### 5. Reduce Your Code
+
+Isolate the kernel to a minimal example to highlight the bug (often shows if UB or memory issue).
+
+---
+
+### Most Likely Fix
+
+**Based on experience, the most common cause is an unsafe data access pattern:**
+  
+- **Fix:**  
+    Ensure all device memory is accessed via SYCL accessors (not host pointers).  
+    Ensure there are no *data races* (e.g., multiple work-items writing to the same memory without atomics or per-item data).
+    Double-check that all memory is properly initialized and device-accessible.
+
+#### Example of Correct Memory Access
+
+```cpp
+buffer<int, 1> buf(data, range<1>(N));
+q.submit([&](handler &h) {
+    auto a = buf.get_access<access::mode::read_write>(h);
+    h.parallel_for(range<1>{N}, [=](id<1> i) {
+        a[i] = ...;  // Safe access
+    });
+});
+```
+
+And **do not** use host pointers:
+
+```cpp
+// DANGER: This may work on CPU, not on GPU!
+h.parallel_for(..., [=](...) {
+    data[i] = ...;
+});
+```
+
+---
+
+### If Problem Persists
+
+- Try running with the **SYCL_CPU backend** and the **SYCL_LEVEL_ZERO backend**, see if bug appears only with Level Zero (Arc's runtime).
+- If still unresolved, post your kernel (minimal form) for deeper analysis.
+
+---
+
+**Summary Recommendation:**  
+**Check accessors usage and watch for data races and memory initialization.  
+Almost all “works on CPU, fails on GPU” SYCL issues are due to these problems.**
+
+If you can post the relevant code snippet, I can help pinpoint the exact issue!
+
+--- o4-mini  (17.6s) ---
+When a SYCL kernel “works” on the CPU emulator but silently produces garbage on the GPU the three most common root causes are
+
+  1. out-of-bounds indexing  
+  2. missing synchronization (race) in local/shared memory  
+  3. USM/buffer lifetime or placement mistakes  
+
+On Intel Arc in particular the host‐emulation driver is very forgiving about races and out-of-bounds writes, so it “looks” correct, whereas the hardware happily scatters your bad data all over device memory.
+
+Step 1: add bounds-checks and run under address-sanitizer  
+– If your index is  
+      auto gid = item.get_global_linear_id();  
+  make sure gid < N.  
+– If you launch a 2D or ND-range, double-check that you’re computing your flattening the same way in the kernel that you set up the ranges on the host.
+
+Step 2: audit every use of local (shared) memory or atomics  
+– If you do a per-work-group reduction into a `local_accessor‹T,1›`, you *must* synchronize before you read back from it. On the CPU driver you may never actually be hitting two threads in flight simultaneously, but on real hardware you absolutely are.  
+  In SYCL-2020 you do this with either  
+      it.barrier(access::fence_space::local_space);  
+  or (if you’ve pulled in the `group<>` abstraction)  
+      sycl::group_barrier(g, sycl::memory_scope::work_group);  
+  *before* any thread reads or writes the shared array.  
+– If you’re using `sycl::atomic_ref`, be sure you’ve picked the correct memory_scope. On-device you almost always want `memory_scope::device`, not `memory_scope::system`.
+
+Step 3: verify your USM allocation or buffer/accessor usage  
+– If you’re using USM, don’t allocate your device buffers with `malloc_host`. That only pins memory for CPU access; on Arc you either need `malloc_device` + an explicit `memcpy`, or—most conveniently—`malloc_shared`.  
+– If you use buffers+accessors, make sure each `buffer` stays alive on the host until *after* the command‐group that writes it has completed.
+
+Putting it all together, the “most likely” single fix is:
+
+1) Switch your shared memory kernel to use a properly declared `local_accessor`  
+2) Insert an explicit barrier after the last thread‐written store into it, e.g.
+
+   ```cpp
+   q.submit([&](sycl::handler &h) {
+     local_accessor<float, 1> scratch{wg_size, h};
+     h.parallel_for<class Foo>(
+       nd_range<1>{global, wg_size},
+       [=](nd_item<1> it) {
+         // each work-item writes into scratch
+         scratch[it.get_local_linear_id()] = …;
+         // MAKE SURE you sync before reading
+         it.barrier(access::fence_space::local_space);
+         // now read-reduce from scratch[]
+         …
+       });
+   });
+   ```
+
+That change alone will eliminate the race on local memory that the CPU driver accidentally masks and will almost certainly restore correctness on Arc. If you’re also using USM, change any `malloc_host` calls to `malloc_shared` (or switch entirely to buffers/accessors) and be sure to wait on your queue (or scope‐exit of the buffer) before touching host data.
+
+✅ All experiments complete.

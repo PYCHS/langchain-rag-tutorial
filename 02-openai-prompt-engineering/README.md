@@ -1,8 +1,21 @@
 # 02 — OpenAI Prompt Engineering
 
-Notes and small practice scripts based on the [OpenAI Prompt Engineering Guide](https://developers.openai.com/api/docs/guides/prompt-engineering). Part of the broader [LLM Engineering Journey](../) — picking up where [01-langchain-rag-tutorial](../01-langchain-rag-tutorial/) (built during my Intel internship learning) left off, and going further into the rest of the LLM stack.
+> 💡 **PromptLab — Intel GPU Debugging Assistant**
+> A project-based study of prompt engineering with the OpenAI API.
 
-The OpenAI guide is mostly conceptual rather than code-heavy, so this README is the main artifact: a concise summary of the ideas, paired with minimal scripts that exercise them. The running example throughout is an **Intel GPU debugging assistant** — same domain as module 01, but built directly on the OpenAI Responses API instead of LangChain.
+Most prompt engineering material I found is *conceptual* — read about developer messages and few-shot examples, but never feel why they matter. This module takes the opposite approach: I built a working tool and learned each concept by applying it, testing it, and watching it succeed or fail.
+
+**The tool:** a CLI assistant for debugging Intel GPU code (OpenCL / SYCL / oneAPI) — answering technical questions, diagnosing bugs, and grounding its answers in a provided knowledge base. Same domain as [01-langchain-rag-tutorial](../01-langchain-rag-tutorial/) (built during my Intel internship learning), but written directly against the OpenAI Responses API instead of LangChain.
+
+**The method:** 7 steps, each isolating one technique — developer messages, structured prompting, few-shot learning, multi-turn state, retrieval-augmented generation, and model selection. At every step I wrote the code, ran it against deliberately tricky test cases (off-topic requests, prompt injection, hallucination traps), observed the behavior, and iterated.
+
+Based on the [OpenAI Prompt Engineering Guide](https://developers.openai.com/api/docs/guides/prompt-engineering); part of the broader [LLM Engineering Journey](../). The guide itself is mostly conceptual rather than code-heavy, so this README is the main artifact: a concise summary of the ideas, paired with minimal scripts that exercise them.
+
+## Three ideas that reframed how I think about LLMs
+
+- **LLMs are stateless.** What feels like "memory" is the application replaying the conversation on every call. ([step 5](#5-multi-turn-conversation-you-maintain-state))
+- **"Retrieval" isn't the model fetching anything** — the *application* injects documents into the prompt; the model only ever reads its input. ([step 6](#6-retrieval-augmented-generation-rag))
+- **Model choice is an engineering tradeoff** (latency vs cost vs quality), not a "pick the smartest one" decision. ([step 7](#1-choose-the-right-model))
 
 ## What the OpenAI guide covers
 
@@ -11,6 +24,12 @@ The OpenAI guide is mostly conceptual rather than code-heavy, so this README is 
 - **Reasoning models** (e.g. `o`-series): better at multi-step problems via internal chain-of-thought; respond best to **high-level goals**, not micromanagement.
 - Pick the smallest model that meets quality; larger = broader knowledge but slower/more expensive.
 - In production, **pin a model snapshot** (e.g. `gpt-4.1-2025-04-14`) so behavior doesn't drift when OpenAI updates the alias.
+
+Exercised in [step7_compare.py](step7_compare.py) by running the same prompt through `gpt-4.1-mini`, `gpt-4.1`, and `o4-mini` side by side (transcript: [step7_result.txt](step7_result.txt)). What the side-by-side actually showed:
+
+- **For a simple definition** ("what is GPU occupancy in one sentence?"), all three models gave equivalent answers. `mini` returned in 2.3s vs `gpt-4.1` at 4.3s and `o4-mini` at 4.4s. Paying for a bigger model here buys nothing.
+- **For a hard reasoning problem** (estimate achieved GFLOPS, decide memory-bound vs compute-bound from a roofline analysis), `o4-mini` produced the cleanest answer — it introduced *arithmetic intensity* and an explicit roofline ceiling, framings the GPT models didn't reach on their own. It also did this in 12.2s while `gpt-4.1` took 30.8s producing a longer but less structured answer. Reasoning models earn their latency when the problem actually needs reasoning.
+- **The right model depends on the prompt, not the prompt depends on the right model.** Picking is an engineering decision — match the model to the workload, then write the prompt in the style that model wants (see [§7 below](#7-model-specific-prompting-style)).
 
 ### 2. Message roles and the chain of command
 The Responses API takes a list of messages, each with a role. The role establishes **priority**:
@@ -85,6 +104,13 @@ The parallel with step 5 is the thing to internalize: "memory" isn't the model r
 - **GPT-5 / GPT-4.1**: highly steerable, give precise logic and data.
 - **Reasoning models**: treat like a senior colleague — describe the goal and the constraints, then trust them with the *how*.
 
+[step7_compare.py](step7_compare.py) also runs a heavy-instructions vs light-instructions experiment ("My SYCL kernel gives correct results on CPU but wrong on Arc GPU") through the three models:
+
+- **Heavy** (5 numbered steps, *"do not skip steps, number every step"*): GPT-4.1 followed the structure faithfully and produced a polished, well-organized debug guide. The reasoning model (`o4-mini`) also followed the steps but the rigid scaffold seemed to *constrain* it — its answer read more like compliance than analysis.
+- **Light** (*"You are a GPU debugging expert. Diagnose the issue and recommend the most likely fix."*): GPT-4.1's answer became broader and less focused without the structure to lean on. `o4-mini` produced its best answer here — it diagnosed the most common cause (driver tolerance differences masking races on the CPU emulator), gave a concrete `local_accessor` + `barrier` code fix, and connected the bug to Intel Arc specifically.
+
+The pattern matches the guide: **GPT models reward prescription; reasoning models reward room to think.** Over-prescribing a reasoning model is a real failure mode — it pays for chain-of-thought you've already pre-empted.
+
 ### 8. Operational concerns
 - **Build evals** before tuning prompts. Without measurement, "better prompt" is vibes.
 - **Position reusable context early** in the prompt — earlier tokens benefit from prompt caching, which cuts cost and latency.
@@ -102,6 +128,7 @@ The parallel with step 5 is the thing to internalize: "memory" isn't the model r
 | [step4_few_shot_example.py](step4_few_shot_example.py) | Adds a `# Examples` section with XML-tagged few-shot input/output pairs, each targeting a different behavior (clarifying question, refusing creative writing, concept answer, real debug answer). |
 | [step5_multi_turn.py](step5_multi_turn.py) | Adds conversational memory by maintaining a `history` list across turns (Option A: manual history). Appends `user` and `assistant` messages each turn and re-sends the full history every call. Includes `reset` (clear back to the developer message) and `history` (print message count) commands; a sample transcript is in [step5_result.txt](step5_result.txt). |
 | [step6_mini_RAG.py](step6_mini_RAG.py) | Mini-RAG by hand: loads [knowledge.md](knowledge.md) into a `KNOWLEDGE` string, injects it into the developer prompt's `# Context` section via `.replace()`, and adds grounding rules under `# Instructions` (answer from context, admit when context lacks the answer, cite the source). The knowledge file deliberately contains *made-up* facts (e.g. error code `XE-4471`, Arc B580 work-group limit 512) so grounding can be proved — the model answers them correctly only because it read the context, and says "the docs don't cover this" for a fake `B999`. Sample transcript: [step6_result.txt](step6_result.txt). |
+| [step7_compare.py](step7_compare.py) | Model comparison harness: runs the same prompt through `gpt-4.1-mini`, `gpt-4.1`, and `o4-mini` side by side, printing each answer with its latency. Three experiments: (1) a simple definition (all equivalent, mini ~2× faster), (2) a hard roofline reasoning problem (`o4-mini` wins on quality *and* speed), (3) heavy step-by-step instructions vs light goal-oriented instructions on the same bug — exposing that reasoning models do better with room to think. Transcript: [step7_result.txt](step7_result.txt). |
 
 The Intel-GPU-debug-assistant scenario was chosen on purpose: it forces the prompt to **define scope** (refuse off-topic), **set tone** (technical audience), and **constrain behavior** (ask one focused question instead of guessing) — all things you can't get from prompting alone without thinking about structure.
 
