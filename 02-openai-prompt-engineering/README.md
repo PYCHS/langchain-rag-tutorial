@@ -1,5 +1,7 @@
 # 02 — OpenAI Prompt Engineering
 
+📝 **Notion notes:** [A working Intel GPU Debugging Assistant (small project)](https://www.notion.so/A-working-Intel-GPU-Debugging-Assistant-small-project-3650e208cd7f8090919adaf01e167987?source=copy_link)
+
 > 💡 **PromptLab — Intel GPU Debugging Assistant**
 > A project-based study of prompt engineering with the OpenAI API.
 

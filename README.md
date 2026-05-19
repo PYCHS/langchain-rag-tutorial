@@ -1,5 +1,7 @@
 # LLM Engineering Journey
 
+📝 **Notion notes:** [Intel Internship Learning Roadmap](https://www.notion.so/Intel-Internship-Learning-Roadmap-3260e208cd7f8073a7c8f290cde444ec?source=copy_link)
+
 A personal learning repo for working through LLM engineering — from RAG and prompting to agents, evaluation, and beyond. Each numbered folder is a self-contained module with its own code and notes.
 
 This repo was **originally built for my Intel GPU Software Development Internship learning** (the LangChain RAG tutorial in module 01). I'm now expanding it to learn further across the LLM engineering stack — prompt engineering, agents, evaluation, fine-tuning, and whatever else turns out to be load-bearing.

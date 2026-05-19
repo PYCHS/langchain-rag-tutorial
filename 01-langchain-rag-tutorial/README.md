@@ -1,5 +1,7 @@
 # 01 — LangChain RAG Tutorial
 
+📝 **Notion notes:** [Build a RAG agent with LangChain](https://www.notion.so/Build-a-RAG-agent-with-LangChain-33c0e208cd7f80168046e45d9285e42b?source=copy_link)
+
 A hands-on practice project for learning Retrieval-Augmented Generation (RAG) with LangChain. This was the original module of the repo, built while I was preparing for my Intel GPU Software Development Internship — now part of the broader [LLM Engineering Journey](../).
 
 ## What I'm Learning
