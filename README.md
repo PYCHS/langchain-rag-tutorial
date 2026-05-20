@@ -11,7 +11,8 @@ This repo was **originally built for my Intel GPU Software Development Internshi
 | # | Module | What it covers |
 |---|--------|----------------|
 | 01 | [langchain-rag-tutorial](01-langchain-rag-tutorial/) | Retrieval-Augmented Generation with LangChain — comparing a chain approach (retrieve-then-generate) with an agent approach (LLM-controlled retrieval), using Chroma + HuggingFace embeddings and Claude as the generator. |
-| 02 | [openai-prompt-engineering](02-openai-prompt-engineering/) | Prompt engineering patterns with the OpenAI API — structuring prompts, controlling output, and iterating on prompt design. *(in progress)* |
+| 02 | [openai-prompt-engineering](02-openai-prompt-engineering/) | Prompt engineering patterns with the OpenAI API — structuring prompts, controlling output, multi-turn state, mini-RAG, and model selection, built as an Intel GPU debugging assistant. |
+| 03 | [google-prompting-essentials](03-google-prompting-essentials/) | Notes and reusable prompt templates from Google's Prompting Essentials course — the 5-step framework, reasoning techniques (chain/tree-of-thought, meta prompting), and AI agents. |
 
 More modules will be added as the journey continues.
 
@@ -21,6 +22,7 @@ More modules will be added as the journey continues.
 llm-engineering-journey/
 ├── 01-langchain-rag-tutorial/      # RAG: chain vs. agent, Chroma, embeddings
 ├── 02-openai-prompt-engineering/   # Prompt engineering with OpenAI
+├── 03-google-prompting-essentials/ # Google course notes + prompt templates
 └── README.md
 ```
 
