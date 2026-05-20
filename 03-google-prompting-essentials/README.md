@@ -1,6 +1,7 @@
 # 03 — Google Prompting Essentials
 
-Notes and reusable prompt templates from Google's Prompting Essentials course (Coursera, ~9 hours). Part of the broader [LLM Engineering Journey](../).
+Notes and reusable prompt templates from Google's Prompting Essentials course (Coursera, ~9 hours). 
+[My notion notes: Google Prompting Essentials Specialization](https://www.notion.so/Google-Prompting-Essentials-Specialization-3650e208cd7f80339e21d741a6fa3bed?source=copy_link)
 
 - **[Google_Prompting_Notes.md](Google_Prompting_Notes.md)** — full course notes: the 5-step framework, all 4 modules, reasoning techniques (chain-of-thought, tree-of-thought, meta prompting), AI agents, and my personal practice templates.
 - **[templates/](templates/)** — 10 reusable prompt templates below, each demonstrating one technique with `{placeholders}` to swap in for your own use case.
