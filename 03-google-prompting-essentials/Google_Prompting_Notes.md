@@ -2,6 +2,8 @@
 
 > A structured summary of **Google Prompting Essentials Specialization**, a ~9-hour Coursera course on practical prompt engineering, everyday AI workflows, data analysis, presentation building, advanced prompting, and AI agents.
 
+<img width="729" height="558" alt="截圖 2026-05-20 下午3 44 51" src="https://github.com/user-attachments/assets/63a0c61e-b7c3-4cc5-a326-62dae2a07f90" />
+
 ## Course Overview
 
 | Item | Details |
@@ -24,6 +26,8 @@
 ---
 
 # Module 1 — Start Writing Prompts Like a Pro
+
+<img width="728" height="559" alt="截圖 2026-05-20 下午3 45 11" src="https://github.com/user-attachments/assets/e5654cf3-c5af-45ee-8f18-4782d8d8596a" />
 
 ## What Is Prompting?
 
@@ -211,6 +215,8 @@ Task + Context + References + Evaluate + Iterate
 
 # Module 2 — Design Prompts for Everyday Work Tasks
 
+<img width="726" height="563" alt="截圖 2026-05-20 下午3 46 12" src="https://github.com/user-attachments/assets/faa4207d-8eb3-4dac-8bfe-ca9a7a4ab311" />
+
 ## Main Idea
 
 Module 2 applies the core prompting framework to daily work tasks.
@@ -365,6 +371,9 @@ Constraints:
 ---
 
 # Module 3 — Speed Up Data Analysis and Presentation Building
+
+<img width="728" height="557" alt="截圖 2026-05-20 下午3 46 54" src="https://github.com/user-attachments/assets/802618f5-4a51-4fd7-8503-67a299b718a9" />
+
 
 ## Core Flow
 
@@ -688,6 +697,9 @@ Provide data context → Ask focused questions → Get insights → Build slides
 ---
 
 # Module 4 — Use AI as a Creative or Expert Partner
+
+<img width="725" height="556" alt="截圖 2026-05-20 下午3 47 36" src="https://github.com/user-attachments/assets/8955078d-e49c-429f-b1ef-73fb158cbb29" />
+
 
 ## Core Flow
 
